@@ -16,7 +16,14 @@ class Program {
 
     static void Main(string[] args) {
         Dictionary<int, user_t> users = new Dictionary<int, user_t>();
-        
+
+
+        packet_mgr.packet_recv_callback[packet_mgr.get_typehash<yc_packet.p_input>()] = (,) =>
+        {
+        };
+
+
+
 
         UdpClient udp = new UdpClient(9100);
         try {

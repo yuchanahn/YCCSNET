@@ -7,36 +7,52 @@ using System.Threading.Tasks;
 
 namespace YCCSNET {
 
-    public static class packet_mgr{
-        public static Dictionary<EPacket_type, Func<List<byte>, int, List<byte>>> packet_recv_callback = new Dictionary<EPacket_type, Func<List<byte>, int, List<byte>>>();
+    
 
-        public static List<byte> make_buffer(EPacket_type type, byte[] buf) {
+    public static class packet_mgr{
+        
+        public static Dictionary<int, Func<List<byte>, int, List<byte>>> packet_recv_callback = new Dictionary<int, Func<List<byte>, int, List<byte>>>();
+        
+        public static List<byte> make_buffer<T>(byte[] buf) {
             var r = buf.ToList();
             int size = r.Count;
             r.InsertRange(0, BitConverter.GetBytes(size).ToList());
-            r.InsertRange(0, BitConverter.GetBytes((short)type).ToList());
+            r.InsertRange(0, BitConverter.GetBytes(default(T).GetType().GetHashCode()).ToList());
             return r;
         }
 
         public static void packet_read(List<byte> buf, int id) {
             while (buf.Count != 0) {
-                short type = BitConverter.ToInt16(new byte[2] { buf[0], buf[1] });
-                buf.RemoveRange(0, 2);
-                buf = packet_recv_callback[(EPacket_type)type](buf, id);
+                int type = BitConverter.ToInt32(new byte[4] { buf[0], buf[1], buf[2], buf[3] });
+                buf.RemoveRange(0, 4);
+                buf = packet_recv_callback[type](buf, id);
             }
+        }
+        public static int get_typehash<T>()
+        {
+            return default(T).GetType().GetHashCode();
         }
     }
 
-    class yc_packet {
+    public class yc_packet {
 
         [Serializable()]
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
-        class p_input : packet_t<p_input> {
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
-            public string id;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 20)]
-            public string passwd;
+        public class p_input : packet_t<p_input>
+        {
+            public short input;
+            public bool is_down;
+            public int timestamp;
         }
+
+        [Serializable()]
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        public class p_start : packet_t<p_start>
+        {
+            public int timestamp;
+        }
+
+        //int Timestamp = (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
 
         [Serializable]
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
