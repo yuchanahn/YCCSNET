@@ -8,24 +8,31 @@ using YCCSNET;
 using System.Collections.Generic;
 using System.Linq;
 
+
 class Program {
     public class user_t {
         public int hash;
         public IPEndPoint ip;
     };
+    static Dictionary<int, user_t> users = new Dictionary<int, user_t>();
+    static UdpClient udp = new UdpClient(10200);
+    static void send<T>(T data, int id) where T : packet_t<T> {
+        var buf = packet_mgr.make_buffer<T>(data.Serialize());
+        udp.Send(buf.ToArray(), buf.Count, users[id].ip);
+    }
+
+    static void send_all<T>(T data, int id) where T : packet_t<T> {
+        var buf = packet_mgr.make_buffer<T>(data.Serialize());
+        foreach (var i in users) {
+            udp.Send(buf.ToArray(), buf.Count, i.Value.ip);
+        }
+    }
 
     static void Main(string[] args) {
-        Dictionary<int, user_t> users = new Dictionary<int, user_t>();
-
-
-        packet_mgr.packet_recv_callback[packet_mgr.get_typehash<yc_packet.p_input>()] = (,) =>
-        {
-        };
-
-
-
-
-        UdpClient udp = new UdpClient(9100);
+        net_event<p_input>.subscribe((p_input input, int id) => {
+            send_all(input, id);
+        });
+        
         try {
             //DBManager.Init("localhost");
             Console.WriteLine(" * UDP 서버가 시작되었습니다");
