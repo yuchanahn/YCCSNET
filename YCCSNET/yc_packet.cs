@@ -43,11 +43,12 @@ namespace YCCSNET {
     }
 
 
+
     [Serializable()]
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class p_input : packet_t<p_input> {
         public char input;
-        public bool is_down;
+        public char id;
         public int timestamp;
     }
 
@@ -55,6 +56,7 @@ namespace YCCSNET {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class p_start : packet_t<p_start> {
         public int timestamp;
+        public char my_id;
     }
 
     //int Timestamp = (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;

@@ -10,6 +10,10 @@ using System.Linq;
 
 
 class Program {
+
+
+    static int Timestamp => (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1)).TotalSeconds;
+
     public class user_t {
         public int hash;
         public IPEndPoint ip;
@@ -30,6 +34,7 @@ class Program {
 
     static void Main(string[] args) {
         net_event<p_input>.subscribe((p_input input, int id) => {
+            input.timestamp = Timestamp;
             send_all(input, id);
         });
         
@@ -54,6 +59,12 @@ class Program {
                     users[id] = new user_t();
                     var user = users[id];
                     user.ip = r_ip;
+                }
+
+                if(users.Count == 2) {
+                    p_start start;
+                    start = new p_start();
+                    send_all(input, id);
                 }
                 packet_mgr.packet_read(byteBuffer.ToList(), id);
             } catch (SocketException se) {
