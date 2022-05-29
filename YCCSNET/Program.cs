@@ -17,6 +17,7 @@ class Program {
     public class user_t {
         public int hash;
         public IPEndPoint ip;
+        public char id;
     };
     static Dictionary<int, user_t> users = new Dictionary<int, user_t>();
     static UdpClient udp = new UdpClient(10200);
@@ -35,6 +36,7 @@ class Program {
     static void Main(string[] args) {
         net_event<p_input>.subscribe((p_input input, int id) => {
             input.timestamp = Timestamp;
+            input.id = users[id].id;
             send_all(input, id);
         });
         
@@ -50,7 +52,7 @@ class Program {
                 IPEndPoint r_ip = new IPEndPoint(IPAddress.Any, 0);
                 byte[] byteBuffer = udp.Receive(ref r_ip);
                 int id = r_ip.GetHashCode();
-
+                static int id_cnt = 0;
                 if (byteBuffer.Length == 1) continue;
                 if (!users.ContainsKey(id)) {
                     Console.WriteLine("player code : " + id);
@@ -59,12 +61,19 @@ class Program {
                     users[id] = new user_t();
                     var user = users[id];
                     user.ip = r_ip;
+                    user.id = id_cnt++;
                 }
-
+                static bool is_game_start = false;
+                
                 if(users.Count == 2) {
-                    p_start start;
-                    start = new p_start();
-                    send_all(input, id);
+                    is_game_start = true;
+                    var start = new p_start();
+                    start.timestamp = Timestamp;
+                    
+                    foreach (var u in users) {
+                        start.my_id = u.Value.id;
+                        send(start, u.Key);
+                    }
                 }
                 packet_mgr.packet_read(byteBuffer.ToList(), id);
             } catch (SocketException se) {
