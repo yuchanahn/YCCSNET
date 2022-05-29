@@ -11,10 +11,10 @@ namespace YCCSNET {
     public static class net_event<T> where T : packet_t<T> {
         static Action<T, int> act;
         public static void subscribe(Action<T, int> ev) {
-            packet_mgr.packet_recv_callback[default(T).GetType().GetHashCode()] = event_trriger;
+            packet_mgr.packet_recv_callback[packet_mgr.gc<T>()] = event_trigger;
             act = ev;
         }
-        public static List<byte> event_trriger(List<byte> data, int id) {
+        public static List<byte> event_trigger(List<byte> data, int id) {
             int size = BitConverter.ToInt32(data.ToArray(), 0);
             data.RemoveRange(0, sizeof(int));
             act(packet_t<T>.Deserialize(data.GetRange(0, size).ToArray()), id);
@@ -23,13 +23,35 @@ namespace YCCSNET {
     }
 
     public static class packet_mgr {
+
+        public static Dictionary<int, int> __packet_mapping_hash = new Dictionary<int, int>();
+        public static Dictionary<int, int> __packet_mapping_code = new Dictionary<int, int>();
+
+
+        public static int gc<T>() where T : packet_t<T> {
+            var s = new packet_t<T>();
+            return __packet_mapping_code[s.GetType().GetHashCode()];
+        }
+
+        public static void packet_mapping<T>(int code) where T : packet_t<T> {
+            var s = new packet_t<T>();
+            var hash = s.GetType().GetHashCode();
+            __packet_mapping_code[hash] = code;
+            __packet_mapping_hash[code] = hash;
+        }
+
+        public static void packet_load() {
+            packet_mapping<p_input>(0);
+            packet_mapping<p_start>(1);
+        }
+
         public static Dictionary<int, Func<List<byte>, int, List<byte>>> packet_recv_callback = new Dictionary<int, Func<List<byte>, int, List<byte>>>();
 
-        public static List<byte> make_buffer<T>(byte[] buf) {
+        public static List<byte> make_buffer<T>(byte[] buf) where T : packet_t<T> {
             var r = buf.ToList();
             int size = r.Count;
             r.InsertRange(0, BitConverter.GetBytes(size).ToList());
-            r.InsertRange(0, BitConverter.GetBytes(default(T).GetType().GetHashCode()).ToList());
+            r.InsertRange(0, BitConverter.GetBytes(gc<T>()).ToList());
             return r;
         }
 
