@@ -6,8 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace YCCSNET {
-
-
     public static class net_event<T> where T : packet_t<T> {
         static Action<T, int> act;
         public static void subscribe(Action<T, int> ev) {
@@ -21,12 +19,9 @@ namespace YCCSNET {
             return data.GetRange(size, data.Count - size);
         }
     }
-
     public static class packet_mgr {
-
         public static Dictionary<int, int> __packet_mapping_hash = new Dictionary<int, int>();
         public static Dictionary<int, int> __packet_mapping_code = new Dictionary<int, int>();
-
 
         public static int gc<T>() where T : packet_t<T> {
             var s = new packet_t<T>();
@@ -63,8 +58,6 @@ namespace YCCSNET {
             }
         }
     }
-
-
 
     [Serializable()]
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
