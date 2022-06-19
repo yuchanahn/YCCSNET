@@ -20,24 +20,10 @@ namespace YCCSNET {
         }
     }
     public static class packet_mgr {
-        public static Dictionary<int, int> __packet_mapping_hash = new Dictionary<int, int>();
-        public static Dictionary<int, int> __packet_mapping_code = new Dictionary<int, int>();
-
         public static int gc<T>() where T : packet_t<T> {
             var s = new packet_t<T>();
-            return __packet_mapping_code[s.GetType().GetHashCode()];
-        }
-
-        public static void packet_mapping<T>(int code) where T : packet_t<T> {
-            var s = new packet_t<T>();
-            var hash = s.GetType().GetHashCode();
-            __packet_mapping_code[hash] = code;
-            __packet_mapping_hash[code] = hash;
-        }
-
-        public static void packet_load() {
-            packet_mapping<p_input>(0);
-            packet_mapping<p_start>(1);
+            var hash = s.GetType().Name.GetHashCode();
+            return hash;
         }
 
         public static Dictionary<int, Func<List<byte>, int, List<byte>>> packet_recv_callback = new Dictionary<int, Func<List<byte>, int, List<byte>>>();

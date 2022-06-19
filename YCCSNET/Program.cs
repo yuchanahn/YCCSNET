@@ -33,7 +33,6 @@ class Program {
     }
 
     static void Main(string[] args) {
-        packet_mgr.packet_load();
         net_event<p_input>.subscribe((p_input input, int id) => {
             input.timestamp = Timestamp;
             input.id = users[id].id;
